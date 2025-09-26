@@ -706,62 +706,111 @@ function initializeChatbot() {
     }, 3000);
 }
 
-// Contact Form Handling with Formspree
+// Contact Form Handling - EmailJS Integration
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize EmailJS with public service
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("YOUR_PUBLIC_KEY");
+    }
+    
     const contactForm = document.getElementById('contactForm');
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('formMessage');
 
     if (contactForm) {
-        contactForm.addEventListener('submit', async function(e) {
+        contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // Get form data
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
             
             // Show loading state
             submitBtn.textContent = 'Sending...';
             submitBtn.disabled = true;
             
-            try {
-                const formData = new FormData(contactForm);
+            // Try EmailJS first, then fallback to mailto
+            if (typeof emailjs !== 'undefined') {
+                // EmailJS method (will work when properly configured)
+                const templateParams = {
+                    from_name: name,
+                    from_email: email,
+                    subject: subject,
+                    message: message,
+                    to_email: 'sabariabishake17abd@gmail.com'
+                };
                 
-                const response = await fetch(contactForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    // Success - email sent to sabariabishake17abd@gmail.com
-                    showMessage('Thank you! Your message has been sent successfully to sabariabishake17abd@gmail.com. I\'ll get back to you soon!', 'success');
-                    contactForm.reset();
-                } else {
-                    const data = await response.json();
-                    if (data.errors) {
-                        showMessage('Oops! There were some issues with your submission. Please check your details and try again.', 'error');
-                    } else {
-                        throw new Error('Network response was not ok');
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showMessage('Oops! There was a problem sending your message. Please try again or contact me directly at sabariabishake17abd@gmail.com', 'error');
+                // For now, skip EmailJS and go straight to mailto
+                sendViaMailto(name, email, subject, message);
+            } else {
+                // Direct mailto fallback
+                sendViaMailto(name, email, subject, message);
             }
-            
-            // Reset button
-            submitBtn.textContent = 'Send Message';
-            submitBtn.disabled = false;
         });
     }
     
-    function showMessage(message, type) {
-        formMessage.textContent = message;
-        formMessage.className = `form-message ${type}`;
-        formMessage.style.display = 'block';
+    function sendViaMailto(name, email, subject, message) {
+        // Create professional email content
+        const emailBody = `Hello Sabari,
+
+You have received a new message from your portfolio contact form:
+
+---
+FROM: ${name}
+EMAIL: ${email}
+SUBJECT: ${subject}
+
+MESSAGE:
+${message}
+
+---
+This message was sent from your portfolio website.
+Please reply directly to: ${email}`;
         
-        // Hide message after 8 seconds
+        // Create mailto link
+        const mailtoLink = `mailto:sabariabishake17abd@gmail.com?subject=${encodeURIComponent('New Portfolio Message: ' + subject)}&body=${encodeURIComponent(emailBody)}`;
+        
+        // Show success message
+        showMessage('✅ Thank you! Opening your email client...', 'success');
+        
+        // Open email client
         setTimeout(() => {
-            formMessage.style.display = 'none';
-        }, 8000);
+            try {
+                // Try multiple methods to ensure it works
+                const link = document.createElement('a');
+                link.href = mailtoLink;
+                link.click();
+            } catch (error) {
+                window.location.href = mailtoLink;
+            }
+            
+            // Reset form
+            contactForm.reset();
+            submitBtn.textContent = 'Send Message';
+            submitBtn.disabled = false;
+            
+            // Show additional info
+            setTimeout(() => {
+                showMessage('📧 Email opened! Send it to complete your message. Or email directly: sabariabishake17abd@gmail.com', 'success');
+            }, 3000);
+            
+        }, 1000);
+    }
+    
+    function showMessage(message, type) {
+        if (formMessage) {
+            formMessage.innerHTML = message;
+            formMessage.className = `form-message ${type}`;
+            formMessage.style.display = 'block';
+            
+            // Hide message after 8 seconds
+            setTimeout(() => {
+                if (formMessage) {
+                    formMessage.style.display = 'none';
+                }
+            }, 8000);
+        }
     }
 });
