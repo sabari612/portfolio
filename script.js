@@ -1,6 +1,28 @@
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Video Background Setup
+    const heroVideo = document.getElementById('heroVideo');
+    if (heroVideo) {
+        heroVideo.addEventListener('loadeddata', function() {
+            console.log('Video loaded successfully');
+        });
+        
+        heroVideo.addEventListener('error', function(e) {
+            console.log('Video error:', e);
+            // Hide video background if it fails to load
+            const videoBackground = document.querySelector('.video-background');
+            if (videoBackground) {
+                videoBackground.style.display = 'none';
+            }
+        });
+        
+        // Ensure video plays
+        heroVideo.play().catch(e => {
+            console.log('Video autoplay failed:', e);
+        });
+    }
+    
     // Navigation functionality
     const navToggle = document.querySelector('.nav-toggle');
     const navMenu = document.querySelector('.nav-menu');
@@ -683,3 +705,63 @@ function initializeChatbot() {
         }
     }, 3000);
 }
+
+// Contact Form Handling with Formspree
+document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const formMessage = document.getElementById('formMessage');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(contactForm);
+                
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Success - email sent to sabariabishake17abd@gmail.com
+                    showMessage('Thank you! Your message has been sent successfully to sabariabishake17abd@gmail.com. I\'ll get back to you soon!', 'success');
+                    contactForm.reset();
+                } else {
+                    const data = await response.json();
+                    if (data.errors) {
+                        showMessage('Oops! There were some issues with your submission. Please check your details and try again.', 'error');
+                    } else {
+                        throw new Error('Network response was not ok');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Oops! There was a problem sending your message. Please try again or contact me directly at sabariabishake17abd@gmail.com', 'error');
+            }
+            
+            // Reset button
+            submitBtn.textContent = 'Send Message';
+            submitBtn.disabled = false;
+        });
+    }
+    
+    function showMessage(message, type) {
+        formMessage.textContent = message;
+        formMessage.className = `form-message ${type}`;
+        formMessage.style.display = 'block';
+        
+        // Hide message after 8 seconds
+        setTimeout(() => {
+            formMessage.style.display = 'none';
+        }, 8000);
+    }
+});

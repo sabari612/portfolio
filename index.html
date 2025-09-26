@@ -49,8 +49,8 @@
         <section id="home" class="hero">
             <!-- Video Background -->
             <div class="video-background">
-                <video autoplay muted loop playsinline class="hero-video">
-                    <source src="background banner .mp4" type="video/mp4">
+                <video autoplay muted loop playsinline class="hero-video" id="heroVideo">
+                    <source src="background-banner.mp4" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
                 <div class="video-overlay"></div>
@@ -63,10 +63,6 @@
                     <h2 class="hero-subtitle">
                         <span class="typing-text"></span>
                     </h2>
-                    <p class="hero-description">
-                        Full Stack Developer with 2+ years of experience in building robust web applications, 
-                        mobile apps, and AI-powered solutions using modern technologies.
-                    </p>
                     <div class="hero-buttons">
                         <a href="#contact" class="btn btn-primary">Get In Touch</a>
                         <a href="#projects" class="btn btn-secondary">View My Work</a>
@@ -86,10 +82,11 @@
                         </a>
                     </div>
                 </div>
-                <div class="hero-image">
-                    <div class="hero-avatar">
-                        <img src="WhatsApp Image 2025-09-26 at 09.20.48_db81708e.jpg" alt="Sabari Abishake.K" class="profile-img">
-                    </div>
+                <div class="hero-right">
+                    <p class="hero-description">
+                        Full Stack Developer with 2+ years of experience in building robust web applications, 
+                        mobile apps, and AI-powered solutions using modern technologies.
+                    </p>
                 </div>
             </div>
         </section>
@@ -99,6 +96,9 @@
             <div class="container">
                 <h2 class="section-title">About Me</h2>
                 <div class="about-content">
+                    <div class="about-image">
+                        <img src="WhatsApp Image 2025-09-26 at 09.20.48_db81708e.jpg" alt="Sabari Abishake.K" class="about-profile-img">
+                    </div>
                     <div class="about-text">
                         <p>
                             I'm a passionate Full Stack Developer with 2 years of experience in developing 
@@ -428,6 +428,14 @@
 
         <!-- Contact Section -->
         <section id="contact" class="contact">
+            <!-- Handshake Video Background -->
+            <div class="contact-video-background">
+                <video autoplay muted loop playsinline class="contact-video">
+                    <source src="handshake.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="contact-video-overlay"></div>
+            </div>
             <div class="container">
                 <h2 class="section-title">Get In Touch</h2>
                 <div class="contact-content">
@@ -462,7 +470,7 @@
                         </div>
                     </div>
                     <div class="contact-form">
-                        <form id="contactForm">
+                        <form id="contactForm" action="https://formspree.io/f/mgvejzpb" method="POST">
                             <div class="form-group">
                                 <input type="text" id="name" name="name" placeholder="Your Name" required>
                             </div>
@@ -475,8 +483,14 @@
                             <div class="form-group">
                                 <textarea id="message" name="message" placeholder="Your Message" rows="5" required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+                            <!-- Hidden fields for Formspree -->
+                            <input type="hidden" name="_to" value="sabariabishake17abd@gmail.com">
+                            <input type="hidden" name="_subject" value="New Contact Form Message from Portfolio">
+                            <input type="text" name="_gotcha" style="display:none" />
+
+                            <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Send Message</button>
                         </form>
+                        <div id="formMessage" class="form-message" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -563,6 +577,7 @@
         </div>
     </footer>
 
+</script>
     <script src="script.js"></script>
 </body>
 </html>
