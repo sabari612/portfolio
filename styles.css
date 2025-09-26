@@ -113,6 +113,33 @@ body {
     overflow: hidden;
 }
 
+/* Video Background */
+.video-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(13, 17, 23, 0.7);
+    z-index: 1;
+}
+
 .hero::before {
     content: '';
     position: absolute;
@@ -138,7 +165,7 @@ body {
     gap: 4rem;
     align-items: center;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .hero-content {
@@ -911,6 +938,15 @@ section {
         grid-template-columns: 1fr;
         text-align: center;
         gap: 2rem;
+    }
+
+    /* Video Background Mobile Optimization */
+    .hero-video {
+        object-position: center center;
+    }
+
+    .video-overlay {
+        background: rgba(13, 17, 23, 0.8);
     }
 
     .hero-title {
