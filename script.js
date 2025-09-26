@@ -436,5 +436,250 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add loading class initially
     document.body.classList.add('loading');
 
+    // Initialize chatbot
+    initializeChatbot();
+
     console.log('Portfolio loaded successfully! 🚀');
 });
+
+// Chatbot Functionality
+function initializeChatbot() {
+    const chatbotToggle = document.getElementById('chatbotToggle');
+    const chatbotWindow = document.getElementById('chatbotWindow');
+    const chatbotClose = document.getElementById('chatbotClose');
+    const chatbotInput = document.getElementById('chatbotInput');
+    const chatbotSend = document.getElementById('chatbotSend');
+    const chatbotMessages = document.getElementById('chatbotMessages');
+    const chatbotBadge = document.getElementById('chatbotBadge');
+
+    let isOpen = false;
+    let conversationStarted = false;
+
+    // Chatbot responses database
+    const responses = {
+        greetings: [
+            "Hello! I'm here to help you learn more about Sabari Abishake. What would you like to know?",
+            "Hi there! I can tell you about Sabari's skills, projects, and experience. How can I assist you?",
+            "Welcome! I'm Sabari's AI assistant. Feel free to ask me anything about his portfolio!"
+        ],
+        skills: {
+            keywords: ['skill', 'technology', 'tech', 'programming', 'language', 'framework', 'tools'],
+            responses: [
+                "Sabari is a Full Stack Developer with expertise in:\n\n🔹 **Frontend:** Angular, Vue.js, React, HTML5, CSS3, JavaScript\n🔹 **Backend:** .NET Core, Node.js, Java, ASP.NET Core\n🔹 **Mobile:** Flutter, Xamarin, Ionic, Cordova\n🔹 **AI/ML:** LangChain, Streamlit, OpenAI, Groq LLM, Pinecone\n🔹 **Databases:** SQL Server, MongoDB, PostgreSQL, MySQL\n🔹 **Cloud:** Microsoft Azure, Jenkins CI/CD\n\nHe's also IBM certified in .NET development!"
+            ]
+        },
+        experience: {
+            keywords: ['experience', 'work', 'job', 'career', 'professional', 'company', 'dod'],
+            responses: [
+                "Sabari has 2+ years of professional experience as a Full Stack Web Developer at DOD IT Solution (March 2023 - Present).\n\n💼 **Key Achievements:**\n• Developed enterprise applications like boons, utctravel, utility bills pay\n• Built AI chatbots using LangChain and Streamlit\n• Created mobile apps with Flutter and Ionic\n• Implemented CI/CD pipelines with Jenkins\n• Worked with modern tech stack including .NET Core, Angular, and MongoDB\n\nHe's contributed to multiple successful projects in web development, mobile apps, and AI solutions!"
+            ]
+        },
+        projects: {
+            keywords: ['project', 'work', 'built', 'created', 'developed', 'portfolio', 'github'],
+            responses: [
+                "Sabari has worked on several impressive projects:\n\n🤖 **AI Projects:**\n• ChatNova - Smart restaurant chatbot with LangChain & Groq LLM\n• Code Assistant - AI-powered coding helper with RAG\n• Text Summarizer - Document summarization tool\n• YouTube Video Summarizer - Extract key insights from videos\n\n🌐 **Web Applications:**\n• Enterprise platforms: boons, utctravel, Reconbus\n• Utility payment systems\n• Cryptocurrency platforms\n\n📱 **Mobile Development:**\n• Cross-platform apps using Flutter\n• Native mobile solutions\n\nCheck out his GitHub at github.com/sabari612 for more details!"
+            ]
+        },
+        contact: {
+            keywords: ['contact', 'email', 'phone', 'reach', 'hire', 'connect', 'linkedin'],
+            responses: [
+                "You can reach Sabari through multiple channels:\n\n📧 **Email:** sabariabishake17abd@gmail.com\n📱 **Phone:** +91 9791675458\n💼 **LinkedIn:** linkedin.com/in/sabari-abishake-0a551a27b\n🐙 **GitHub:** github.com/sabari612\n\n💡 **Want to hire him?** You can use the contact form on this website or reach out directly via email. He's always open to discussing new opportunities and exciting projects!\n\nHe typically responds within 24 hours to all inquiries."
+            ]
+        },
+        education: {
+            keywords: ['education', 'degree', 'university', 'college', 'study', 'certification'],
+            responses: [
+                "Sabari's educational background:\n\n🎓 **Degree:** BE Computer Science from Anna University (2023)\n🏆 **Certification:** IBM Certified in Developing .NET (2024)\n\n📚 **Continuous Learning:**\nHe stays updated with the latest technologies and frameworks, especially in:\n• AI/ML technologies\n• Modern web development\n• Cloud computing\n• Mobile development\n\nHis combination of formal education and industry certifications makes him well-equipped for modern software development challenges!"
+            ]
+        },
+        ai: {
+            keywords: ['ai', 'artificial intelligence', 'machine learning', 'ml', 'chatbot', 'langchain', 'openai'],
+            responses: [
+                "Sabari has extensive experience in AI/ML technologies:\n\n🧠 **AI Tools & Frameworks:**\n• LangChain for building AI applications\n• Streamlit for AI web interfaces\n• OpenAI & Groq LLM integration\n• Pinecone & ChromaDB for vector databases\n• Flowise for visual AI pipeline creation\n\n🚀 **AI Projects:**\n• ChatNova - Restaurant chatbot with intelligent conversations\n• RAG Chatbot - Retrieval-augmented generation system\n• Code Assistant - AI-powered development helper\n• Document/Video summarizers\n\nHe combines traditional software development with cutting-edge AI to create intelligent, interactive applications!"
+            ]
+        },
+        default: [
+            "That's an interesting question! Let me help you find what you're looking for. You can ask me about:\n\n• Sabari's technical skills and expertise\n• His professional experience and projects\n• How to contact or hire him\n• His AI/ML capabilities\n• His education and certifications\n\nWhat specifically would you like to know?",
+            "I'd be happy to help! I can provide information about Sabari's background, skills, projects, and how to get in touch with him. What would you like to learn more about?",
+            "Great question! I can tell you about Sabari's experience as a Full Stack Developer, his AI projects, technical skills, or how to contact him. What interests you most?"
+        ]
+    };
+
+    // Toggle chatbot
+    chatbotToggle.addEventListener('click', function() {
+        toggleChatbot();
+    });
+
+    chatbotClose.addEventListener('click', function() {
+        closeChatbot();
+    });
+
+    // Send message functionality
+    chatbotSend.addEventListener('click', function() {
+        sendMessage();
+    });
+
+    chatbotInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // Quick reply buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('quick-reply') || e.target.classList.contains('suggestion-chip')) {
+            const message = e.target.getAttribute('data-message');
+            if (message) {
+                chatbotInput.value = message;
+                sendMessage();
+            }
+        }
+    });
+
+    function toggleChatbot() {
+        if (isOpen) {
+            closeChatbot();
+        } else {
+            openChatbot();
+        }
+    }
+
+    function openChatbot() {
+        chatbotWindow.classList.add('active');
+        chatbotBadge.style.display = 'none';
+        isOpen = true;
+        
+        if (!conversationStarted) {
+            setTimeout(() => {
+                showWelcomeMessage();
+            }, 500);
+            conversationStarted = true;
+        }
+    }
+
+    function closeChatbot() {
+        chatbotWindow.classList.remove('active');
+        isOpen = false;
+        
+        setTimeout(() => {
+            chatbotBadge.style.display = 'block';
+        }, 2000);
+    }
+
+    function showWelcomeMessage() {
+        // This is handled by the initial HTML message
+    }
+
+    function sendMessage() {
+        const message = chatbotInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addMessage(message, 'user');
+        chatbotInput.value = '';
+        chatbotSend.disabled = true;
+
+        // Show typing indicator
+        showTypingIndicator();
+
+        // Generate response after delay
+        setTimeout(() => {
+            hideTypingIndicator();
+            const response = generateResponse(message);
+            addMessage(response, 'bot');
+            chatbotSend.disabled = false;
+        }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+    }
+
+    function addMessage(content, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        const messageParagraph = document.createElement('p');
+        
+        // Convert markdown-like formatting to HTML
+        const formattedContent = content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/🔹|•/g, '<span style="color: #58a6ff;">•</span>')
+            .replace(/\n/g, '<br>');
+        
+        messageParagraph.innerHTML = formattedContent;
+        messageContent.appendChild(messageParagraph);
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        
+        chatbotMessages.appendChild(messageDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message typing-message';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="typing-indicator">
+                    <span style="color: #8b949e; font-size: 0.9rem;">Sabari's assistant is typing</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        chatbotMessages.appendChild(typingDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        const typingMessage = document.querySelector('.typing-message');
+        if (typingMessage) {
+            typingMessage.remove();
+        }
+    }
+
+    function generateResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        
+        // Check for greeting patterns
+        if (lowerMessage.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/)) {
+            return getRandomResponse(responses.greetings);
+        }
+        
+        // Check each category
+        for (const [category, data] of Object.entries(responses)) {
+            if (category === 'greetings' || category === 'default') continue;
+            
+            if (data.keywords && data.keywords.some(keyword => lowerMessage.includes(keyword))) {
+                return getRandomResponse(data.responses);
+            }
+        }
+        
+        // Default response
+        return getRandomResponse(responses.default);
+    }
+
+    function getRandomResponse(responseArray) {
+        return responseArray[Math.floor(Math.random() * responseArray.length)];
+    }
+
+    // Auto-show badge after page load
+    setTimeout(() => {
+        if (!isOpen && chatbotBadge) {
+            chatbotBadge.style.opacity = '1';
+            chatbotBadge.style.transform = 'translateY(0)';
+        }
+    }, 3000);
+}

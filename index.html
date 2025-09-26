@@ -475,6 +475,64 @@
         </section>
     </main>
 
+    <!-- Chatbot Widget -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-robot"></i>
+            <span class="chatbot-badge" id="chatbotBadge">Ask me anything!</span>
+        </div>
+        
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <div class="chatbot-header-info">
+                    <div class="chatbot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="chatbot-details">
+                        <h4>Portfolio Assistant</h4>
+                        <span class="chatbot-status">
+                            <span class="status-dot"></span>
+                            Online
+                        </span>
+                    </div>
+                </div>
+                <button class="chatbot-close" id="chatbotClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hi! I'm Sabari's Portfolio Assistant. I can help you learn more about his skills, projects, and experience. What would you like to know?</p>
+                        <div class="quick-replies">
+                            <button class="quick-reply" data-message="Tell me about his skills">Skills</button>
+                            <button class="quick-reply" data-message="What projects has he worked on?">Projects</button>
+                            <button class="quick-reply" data-message="How can I contact him?">Contact</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatbot-input">
+                <div class="input-container">
+                    <input type="text" id="chatbotInput" placeholder="Type your message..." maxlength="500">
+                    <button id="chatbotSend">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="chatbot-suggestions">
+                    <button class="suggestion-chip" data-message="What technologies does he use?">Technologies</button>
+                    <button class="suggestion-chip" data-message="Tell me about his experience">Experience</button>
+                    <button class="suggestion-chip" data-message="Show me his AI projects">AI Projects</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
