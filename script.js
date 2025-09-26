@@ -508,6 +508,12 @@ function initializeChatbot() {
                 "You can reach Sabari through multiple channels:\n\n📧 **Email:** sabariabishake17abd@gmail.com\n📱 **Phone:** +91 9791675458\n💼 **LinkedIn:** linkedin.com/in/sabari-abishake-0a551a27b\n🐙 **GitHub:** github.com/sabari612\n\n💡 **Want to hire him?** You can use the contact form on this website or reach out directly via email. He's always open to discussing new opportunities and exciting projects!\n\nHe typically responds within 24 hours to all inquiries."
             ]
         },
+        resume: {
+            keywords: ['resume', 'cv', 'download', 'pdf', 'curriculum'],
+            responses: [
+                "📄 **Resume Download Available!**\n\nYou can download Sabari's complete resume which includes:\n\n• Professional experience details\n• Technical skills and certifications\n• Project highlights and achievements\n• Education and training background\n• Contact information\n\n**Click the download button below to get his latest resume in PDF format!**"
+            ]
+        },
         education: {
             keywords: ['education', 'degree', 'university', 'college', 'study', 'certification'],
             responses: [
@@ -608,12 +614,13 @@ function initializeChatbot() {
         setTimeout(() => {
             hideTypingIndicator();
             const response = generateResponse(message);
-            addMessage(response, 'bot');
+            const isResumeQuery = message.toLowerCase().match(/resume|cv|download|pdf|curriculum/);
+            addMessage(response, 'bot', isResumeQuery);
             chatbotSend.disabled = false;
         }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
     }
 
-    function addMessage(content, sender) {
+    function addMessage(content, sender, includeResumeButton = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
         
@@ -634,6 +641,22 @@ function initializeChatbot() {
         
         messageParagraph.innerHTML = formattedContent;
         messageContent.appendChild(messageParagraph);
+        
+        // Add resume download button if this is a resume-related response
+        if (includeResumeButton && sender === 'bot') {
+            const resumeButtonDiv = document.createElement('div');
+            resumeButtonDiv.className = 'quick-replies';
+            resumeButtonDiv.style.marginTop = '10px';
+            
+            const resumeButton = document.createElement('a');
+            resumeButton.href = 'resume.pdf';
+            resumeButton.download = 'Sabari_Abishake_Resume.pdf';
+            resumeButton.className = 'quick-reply resume-download';
+            resumeButton.innerHTML = '<i class="fas fa-download"></i> Download Resume';
+            
+            resumeButtonDiv.appendChild(resumeButton);
+            messageContent.appendChild(resumeButtonDiv);
+        }
         
         messageDiv.appendChild(avatar);
         messageDiv.appendChild(messageContent);
