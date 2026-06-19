@@ -521,9 +521,27 @@ function initializeChatbot() {
             ]
         },
         ai: {
-            keywords: ['ai', 'artificial intelligence', 'machine learning', 'ml', 'chatbot', 'langchain', 'openai'],
+            keywords: ['ai', 'artificial intelligence', 'machine learning', 'ml', 'langchain', 'openai', 'llm', 'genai', 'rag', 'vector', 'embedding'],
             responses: [
                 "Sabari has extensive experience in AI/ML technologies:\n\n🧠 **AI Tools & Frameworks:**\n• LangChain for building AI applications\n• Streamlit for AI web interfaces\n• OpenAI & Groq LLM integration\n• Pinecone & ChromaDB for vector databases\n• Flowise for visual AI pipeline creation\n\n🚀 **AI Projects:**\n• ChatNova - Restaurant chatbot with intelligent conversations\n• RAG Chatbot - Retrieval-augmented generation system\n• Code Assistant - AI-powered development helper\n• Document/Video summarizers\n\nHe combines traditional software development with cutting-edge AI to create intelligent, interactive applications!"
+            ]
+        },
+        location: {
+            keywords: ['location', 'where', 'based', 'city', 'country', 'live', 'from', 'india', 'remote', 'relocate'],
+            responses: [
+                "📍 **Location:** Sabari is based in India and works as a Full Stack Developer at DOD IT Solution.\n\nHe's open to **remote work** and **collaboration opportunities** worldwide. For on-site discussions, feel free to reach out via email at sabariabishake17abd@gmail.com."
+            ]
+        },
+        availability: {
+            keywords: ['available', 'hire', 'hiring', 'freelance', 'opportunity', 'open to work', 'job offer', 'recruit'],
+            responses: [
+                "💼 **Open to Opportunities!**\n\nSabari is currently working full-time but is open to:\n• Exciting freelance / contract projects\n• AI / Full Stack consulting\n• Interesting collaborations\n\n📧 Reach him at **sabariabishake17abd@gmail.com** or use the contact form on this site. Typical response time: under 24 hours."
+            ]
+        },
+        about: {
+            keywords: ['who', 'about', 'introduce', 'yourself', 'tell me about', 'sabari', 'background'],
+            responses: [
+                "👋 **About Sabari Abishake.K**\n\nSabari is a passionate **Full Stack Developer** with 2+ years of experience building enterprise web apps, mobile apps and AI-powered solutions.\n\n🎓 BE Computer Science — Anna University (2023)\n🏆 IBM Certified .NET Developer (2024)\n💼 Currently at DOD IT Solution (Mar 2023 – Present)\n\nHe blends modern web development (Angular, .NET Core, Node.js) with cutting-edge AI (LangChain, OpenAI, RAG) to build intelligent products."
             ]
         },
         news: {
@@ -531,11 +549,41 @@ function initializeChatbot() {
             async: true
         },
         default: [
-            "That's an interesting question! Let me help you find what you're looking for. You can ask me about:\n\n• Sabari's technical skills and expertise\n• His professional experience and projects\n• How to contact or hire him\n• His AI/ML capabilities\n• His education and certifications\n\nWhat specifically would you like to know?",
-            "I'd be happy to help! I can provide information about Sabari's background, skills, projects, and how to get in touch with him. What would you like to learn more about?",
-            "Great question! I can tell you about Sabari's experience as a Full Stack Developer, his AI projects, technical skills, or how to contact him. What interests you most?"
+            "Let me think about that..."
         ]
     };
+
+    // Compact portfolio context passed to the LLM as a system prompt so any open-ended
+    // question still gets answered with accurate info about Sabari.
+    const PORTFOLIO_CONTEXT = `You are the AI assistant on Sabari Abishake.K's portfolio website.
+Answer the visitor's question concisely (2-5 short sentences) and helpfully.
+If the question is about Sabari, use ONLY the facts below. If it's a general/IT/world/coding question, answer it directly and accurately.
+Never invent facts about Sabari.
+
+ABOUT SABARI:
+- Full Stack Developer based in India, 2+ years of experience.
+- Currently Full Stack Web Developer at DOD IT Solution (March 2023 - Present).
+- BE Computer Science, Anna University (2023). IBM Certified .NET Developer (2024).
+- Email: sabariabishake17abd@gmail.com | Phone: +91 9791675458
+- GitHub: github.com/sabari612 | LinkedIn: linkedin.com/in/sabari-abishake-0a551a27b
+- Open to freelance, remote opportunities and AI/full-stack collaborations.
+
+SKILLS:
+- Frontend: Angular, Vue.js, React, HTML5, CSS3, JavaScript, TypeScript
+- Backend: .NET Core, ASP.NET Core, Node.js, Java
+- Mobile: Flutter, Ionic, Xamarin, Cordova
+- AI/ML: LangChain, Streamlit, OpenAI, Groq LLM, Pinecone, ChromaDB, Flowise, RAG
+- Databases: SQL Server, MongoDB, PostgreSQL, MySQL
+- Cloud / DevOps: Microsoft Azure, Jenkins CI/CD, Git
+
+KEY PROJECTS:
+- ChatNova: Smart restaurant chatbot (LangChain + Groq LLM)
+- Code Assistant: AI coding helper with RAG
+- Text Summarizer & YouTube Video Summarizer
+- Enterprise apps: boons, utctravel, Reconbus, utility bill payments
+- Cross-platform mobile apps in Flutter
+
+STYLE: Friendly, professional, no emojis spam (1-2 max). Use markdown **bold** for key terms. Keep answers tight.`;
 
     // Toggle chatbot
     chatbotToggle.addEventListener('click', function() {
@@ -611,11 +659,9 @@ function initializeChatbot() {
         chatbotInput.value = '';
         chatbotSend.disabled = true;
 
-        // Show typing indicator
-        showTypingIndicator();
-
         // Route news queries through the async fetcher (auto-updates daily)
         if (isNewsIntent(message)) {
+            showTypingIndicator();
             fetchITNews()
                 .then(articles => {
                     hideTypingIndicator();
@@ -630,19 +676,82 @@ function initializeChatbot() {
             return;
         }
 
-        // Generate response after delay
-        setTimeout(() => {
-            hideTypingIndicator();
-            const response = generateResponse(message);
-            const isResumeQuery = message.toLowerCase().match(/resume|cv|download|pdf|curriculum/);
-            addMessage(response, 'bot', isResumeQuery);
-            chatbotSend.disabled = false;
-        }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+        // Fast path: try local keyword/intent match first
+        const localMatch = tryLocalMatch(message);
+        if (localMatch) {
+            showTypingIndicator();
+            const isResumeQuery = /resume|cv|download|pdf|curriculum/i.test(message);
+            setTimeout(() => {
+                hideTypingIndicator();
+                addMessage(localMatch, 'bot', !!isResumeQuery);
+                chatbotSend.disabled = false;
+            }, 600 + Math.random() * 600);
+            return;
+        }
+
+        // LLM fallback for anything else - lets the bot answer ANY question
+        showThinkingIndicator();
+        askAI(message)
+            .then(reply => {
+                hideTypingIndicator();
+                addMessage(reply, 'bot', false, true);
+                chatbotSend.disabled = false;
+            })
+            .catch(() => {
+                hideTypingIndicator();
+                addMessage("I'm having trouble reaching my AI brain right now. Try asking about Sabari's **skills**, **projects**, **experience**, **AI work** or **today's IT news** — I can answer those instantly!", 'bot');
+                chatbotSend.disabled = false;
+            });
     }
 
     function isNewsIntent(message) {
         const lower = message.toLowerCase();
         return responses.news.keywords.some(k => lower.includes(k));
+    }
+
+    // Returns a matched local response or null if no keyword intent fires.
+    function tryLocalMatch(message) {
+        const lower = message.toLowerCase();
+        if (/^(hi|hello|hey|yo|hola|namaste|good\s*(morning|afternoon|evening|night))\b/.test(lower)) {
+            return getRandomResponse(responses.greetings);
+        }
+        for (const [category, data] of Object.entries(responses)) {
+            if (category === 'greetings' || category === 'default' || data.async) continue;
+            if (data.keywords && data.keywords.some(k => lower.includes(k))) {
+                return getRandomResponse(data.responses);
+            }
+        }
+        return null;
+    }
+
+    // Free, no-API-key LLM fallback via Pollinations.ai. Public endpoint, CORS-enabled.
+    // Sends the portfolio context as a system prompt so answers stay grounded.
+    async function askAI(userMessage) {
+        const endpoint = 'https://text.pollinations.ai/';
+        const payload = {
+            messages: [
+                { role: 'system', content: PORTFOLIO_CONTEXT },
+                { role: 'user', content: userMessage }
+            ],
+            model: 'openai',
+            seed: Math.floor(Math.random() * 100000)
+        };
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            if (!res.ok) throw new Error('AI request failed: ' + res.status);
+            const text = (await res.text()).trim();
+            if (!text) throw new Error('Empty AI response');
+            return text;
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 
     // Daily auto-updating IT news via Hacker News Algolia API (no key, CORS-enabled).
@@ -685,61 +794,82 @@ function initializeChatbot() {
         return `📰 **Latest IT & Tech News — ${today}**\n\n${items}\n\n_Updated automatically every day from Hacker News._`;
     }
 
-    function addMessage(content, sender, includeResumeButton = false) {
+    function addMessage(content, sender, includeResumeButton = false, isAI = false) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        
+        messageDiv.className = `message ${sender}-message` + (isAI ? ' ai-message' : '');
+
         const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
-        
+        avatar.className = 'message-avatar' + (isAI ? ' ai-avatar' : '');
+        if (sender === 'bot') {
+            avatar.innerHTML = isAI ? '<i class="fas fa-wand-magic-sparkles"></i>' : '<i class="fas fa-robot"></i>';
+        } else {
+            avatar.innerHTML = '<i class="fas fa-user"></i>';
+        }
+
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
-        
+
         const messageParagraph = document.createElement('p');
-        
+
         // Convert markdown-like formatting to HTML
         const formattedContent = content
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/🔹|•/g, '<span style="color: #58a6ff;">•</span>')
             .replace(/\n/g, '<br>');
-        
+
         messageParagraph.innerHTML = formattedContent;
         messageContent.appendChild(messageParagraph);
-        
+
+        // Small "AI" badge under LLM-generated answers
+        if (isAI && sender === 'bot') {
+            const badge = document.createElement('div');
+            badge.className = 'ai-badge';
+            badge.innerHTML = '<i class="fas fa-sparkles"></i> Generated by AI';
+            messageContent.appendChild(badge);
+        }
+
         // Add resume download button if this is a resume-related response
         if (includeResumeButton && sender === 'bot') {
             const resumeButtonDiv = document.createElement('div');
             resumeButtonDiv.className = 'quick-replies';
             resumeButtonDiv.style.marginTop = '10px';
-            
+
             const resumeButton = document.createElement('a');
             resumeButton.href = 'resume.pdf';
             resumeButton.download = 'Sabari_Abishake_Resume.pdf';
             resumeButton.className = 'quick-reply resume-download';
             resumeButton.innerHTML = '<i class="fas fa-download"></i> Download Resume';
-            
+
             resumeButtonDiv.appendChild(resumeButton);
             messageContent.appendChild(resumeButtonDiv);
         }
-        
+
         messageDiv.appendChild(avatar);
         messageDiv.appendChild(messageContent);
-        
+
         chatbotMessages.appendChild(messageDiv);
         chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
     }
 
     function showTypingIndicator() {
+        renderTypingIndicator('<i class="fas fa-robot"></i>', "Sabari's assistant is typing");
+    }
+
+    // Distinct indicator when waiting on the LLM so the visitor knows AI is working
+    function showThinkingIndicator() {
+        renderTypingIndicator('<i class="fas fa-wand-magic-sparkles"></i>', 'AI is thinking', true);
+    }
+
+    function renderTypingIndicator(avatarHTML, label, isAI = false) {
         const typingDiv = document.createElement('div');
-        typingDiv.className = 'message bot-message typing-message';
+        typingDiv.className = 'message bot-message typing-message' + (isAI ? ' ai-message' : '');
         typingDiv.innerHTML = `
-            <div class="message-avatar">
-                <i class="fas fa-robot"></i>
+            <div class="message-avatar${isAI ? ' ai-avatar' : ''}">
+                ${avatarHTML}
             </div>
             <div class="message-content">
-                <div class="typing-indicator">
-                    <span style="color: #8b949e; font-size: 0.9rem;">Sabari's assistant is typing</span>
+                <div class="typing-indicator${isAI ? ' ai-thinking' : ''}">
+                    <span style="color: #8b949e; font-size: 0.9rem;">${label}</span>
                     <div class="typing-dots">
                         <div class="typing-dot"></div>
                         <div class="typing-dot"></div>
@@ -748,7 +878,7 @@ function initializeChatbot() {
                 </div>
             </div>
         `;
-        
+
         chatbotMessages.appendChild(typingDiv);
         chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
     }
@@ -758,27 +888,6 @@ function initializeChatbot() {
         if (typingMessage) {
             typingMessage.remove();
         }
-    }
-
-    function generateResponse(message) {
-        const lowerMessage = message.toLowerCase();
-        
-        // Check for greeting patterns
-        if (lowerMessage.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/)) {
-            return getRandomResponse(responses.greetings);
-        }
-        
-        // Check each category
-        for (const [category, data] of Object.entries(responses)) {
-            if (category === 'greetings' || category === 'default' || data.async) continue;
-
-            if (data.keywords && data.keywords.some(keyword => lowerMessage.includes(keyword))) {
-                return getRandomResponse(data.responses);
-            }
-        }
-        
-        // Default response
-        return getRandomResponse(responses.default);
     }
 
     function getRandomResponse(responseArray) {
