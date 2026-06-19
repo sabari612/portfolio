@@ -464,6 +464,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize AI neural-network background animation
     initAiNeuralBackground();
 
+    // Initialize matrix-style code rain accent in the Skills section
+    initMatrixRain();
+
     console.log('Portfolio loaded successfully! 🚀');
 });
 
@@ -541,18 +544,82 @@ function initAiNeuralBackground() {
     });
 }
 
+// Matrix-style "code rain" accent inside the Skills section.
+// Animates only while the section is in the viewport (IntersectionObserver)
+// so it doesn't waste CPU when the user is reading other sections.
+function initMatrixRain() {
+    const canvas = document.getElementById('matrixRain');
+    if (!canvas) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const section = canvas.parentElement;
+    const ctx = canvas.getContext('2d');
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ01<>{}[]()=+/*-_$#&';
+    let width = 0, height = 0, columns = [], fontSize = 14, rafId = null;
+    let visible = false, running = true;
+
+    function resize() {
+        width = canvas.width = section.clientWidth;
+        height = canvas.height = section.clientHeight;
+        fontSize = width < 600 ? 12 : 14;
+        const colCount = Math.floor(width / fontSize);
+        columns = Array.from({ length: colCount }, () => Math.random() * -height);
+    }
+
+    function draw() {
+        if (!visible || !running) { rafId = null; return; }
+        // Translucent fade so previous chars trail off
+        ctx.fillStyle = 'rgba(13, 17, 23, 0.08)';
+        ctx.fillRect(0, 0, width, height);
+        ctx.font = fontSize + "px 'Fira Code', monospace";
+        for (let i = 0; i < columns.length; i++) {
+            const ch = chars[Math.floor(Math.random() * chars.length)];
+            const x = i * fontSize;
+            const y = columns[i];
+            // Head character is bright teal; trail is dimmer purple-teal mix
+            ctx.fillStyle = Math.random() > 0.97 ? 'rgba(124, 92, 255, 0.95)' : 'rgba(25, 212, 196, 0.75)';
+            ctx.fillText(ch, x, y);
+            columns[i] += fontSize;
+            if (columns[i] > height && Math.random() > 0.975) columns[i] = 0;
+        }
+        rafId = requestAnimationFrame(draw);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            visible = e.isIntersecting;
+            if (visible && !rafId && running) draw();
+        });
+    }, { threshold: 0.05 });
+    observer.observe(section);
+
+    document.addEventListener('visibilitychange', () => {
+        running = !document.hidden;
+        if (running && visible && !rafId) draw();
+    });
+}
+
 // Chatbot Functionality
 function initializeChatbot() {
     const chatbotToggle = document.getElementById('chatbotToggle');
     const chatbotWindow = document.getElementById('chatbotWindow');
     const chatbotClose = document.getElementById('chatbotClose');
+    const chatbotNewChat = document.getElementById('chatbotNewChat');
     const chatbotInput = document.getElementById('chatbotInput');
     const chatbotSend = document.getElementById('chatbotSend');
     const chatbotMessages = document.getElementById('chatbotMessages');
     const chatbotBadge = document.getElementById('chatbotBadge');
 
+    // Snapshot the initial welcome message so the "New chat" button can restore it
+    const initialMessagesHTML = chatbotMessages.innerHTML;
+
     let isOpen = false;
     let conversationStarted = false;
+    // Tracks the active typing-stream animation so New Chat can cancel it
+    let typingTimer = null;
 
     // Chatbot responses database
     const responses = {
@@ -673,6 +740,23 @@ STYLE: Friendly, professional, no emojis spam (1-2 max). Use markdown **bold** f
     chatbotClose.addEventListener('click', function() {
         closeChatbot();
     });
+
+    // New-chat button: clear history and restore the welcome message.
+    // Quick-reply chips inside the restored HTML continue to work via
+    // the document-level delegated listener below.
+    if (chatbotNewChat) {
+        chatbotNewChat.addEventListener('click', function() {
+            // Stop any in-flight typing animation
+            if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
+            hideTypingIndicator();
+            chatbotMessages.innerHTML = initialMessagesHTML;
+            chatbotMessages.scrollTop = 0;
+            chatbotInput.value = '';
+            chatbotSend.disabled = false;
+            chatbotNewChat.classList.add('spin-once');
+            setTimeout(() => chatbotNewChat.classList.remove('spin-once'), 600);
+        });
+    }
 
     // Send message functionality
     chatbotSend.addEventListener('click', function() {
@@ -906,38 +990,62 @@ STYLE: Friendly, professional, no emojis spam (1-2 max). Use markdown **bold** f
             .replace(/🔹|•/g, '<span style="color: #58a6ff;">•</span>')
             .replace(/\n/g, '<br>');
 
-        messageParagraph.innerHTML = formattedContent;
         messageContent.appendChild(messageParagraph);
-
-        // Small "AI" badge under LLM-generated answers
-        if (isAI && sender === 'bot') {
-            const badge = document.createElement('div');
-            badge.className = 'ai-badge';
-            badge.innerHTML = '<i class="fas fa-sparkles"></i> Generated by AI';
-            messageContent.appendChild(badge);
-        }
-
-        // Add resume download button if this is a resume-related response
-        if (includeResumeButton && sender === 'bot') {
-            const resumeButtonDiv = document.createElement('div');
-            resumeButtonDiv.className = 'quick-replies';
-            resumeButtonDiv.style.marginTop = '10px';
-
-            const resumeButton = document.createElement('a');
-            resumeButton.href = 'resume.pdf';
-            resumeButton.download = 'Sabari_Abishake_Resume.pdf';
-            resumeButton.className = 'quick-reply resume-download';
-            resumeButton.innerHTML = '<i class="fas fa-download"></i> Download Resume';
-
-            resumeButtonDiv.appendChild(resumeButton);
-            messageContent.appendChild(resumeButtonDiv);
-        }
-
         messageDiv.appendChild(avatar);
         messageDiv.appendChild(messageContent);
-
         chatbotMessages.appendChild(messageDiv);
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+        const finalize = () => {
+            messageParagraph.innerHTML = formattedContent;
+            // Small "AI" badge under LLM-generated answers
+            if (isAI && sender === 'bot') {
+                const badge = document.createElement('div');
+                badge.className = 'ai-badge';
+                badge.innerHTML = '<i class="fas fa-sparkles"></i> Generated by AI';
+                messageContent.appendChild(badge);
+            }
+            // Add resume download button if this is a resume-related response
+            if (includeResumeButton && sender === 'bot') {
+                const resumeButtonDiv = document.createElement('div');
+                resumeButtonDiv.className = 'quick-replies';
+                resumeButtonDiv.style.marginTop = '10px';
+                const resumeButton = document.createElement('a');
+                resumeButton.href = 'resume.pdf';
+                resumeButton.download = 'Sabari_Abishake_Resume.pdf';
+                resumeButton.className = 'quick-reply resume-download';
+                resumeButton.innerHTML = '<i class="fas fa-download"></i> Download Resume';
+                resumeButtonDiv.appendChild(resumeButton);
+                messageContent.appendChild(resumeButtonDiv);
+            }
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        };
+
+        // Stream-type AI replies char-by-char for a "live streaming" feel.
+        // Plain text is typed first; on completion we swap in the formatted HTML.
+        if (isAI && sender === 'bot' && content.length < 1500) {
+            const plain = content.replace(/\*\*/g, '');
+            const speed = Math.max(10, Math.min(28, Math.floor(700 / Math.sqrt(plain.length + 1))));
+            let i = 0;
+            messageParagraph.innerHTML = '<span class="typed-text"></span><span class="typing-cursor">▍</span>';
+            const typedSpan = messageParagraph.querySelector('.typed-text');
+            if (typingTimer) clearInterval(typingTimer);
+            typingTimer = setInterval(() => {
+                if (i >= plain.length) {
+                    clearInterval(typingTimer);
+                    typingTimer = null;
+                    finalize();
+                    return;
+                }
+                // Consume chars in small chunks for smoother feel on long replies
+                const step = plain.length > 400 ? 2 : 1;
+                const chunk = plain.slice(i, i + step).replace(/\n/g, '\n');
+                typedSpan.appendChild(document.createTextNode(chunk));
+                i += step;
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }, speed);
+        } else {
+            finalize();
+        }
     }
 
     function showTypingIndicator() {

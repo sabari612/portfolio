@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lottie web component for floating AI animations -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
 </head>
 <body>
     <!-- AI neural-network animated background (canvas) -->
@@ -103,6 +105,12 @@
 
         <!-- About Section -->
         <section id="about" class="about">
+            <!-- Floating AI Lottie accent -->
+            <lottie-player
+                class="lottie-accent lottie-accent-about"
+                src="https://assets10.lottiefiles.com/packages/lf20_w98qte06.json"
+                background="transparent" speed="1" loop autoplay
+                aria-hidden="true"></lottie-player>
             <div class="container">
                 <h2 class="section-title">About Me</h2>
                 <div class="about-content">
@@ -157,6 +165,8 @@
 
         <!-- Skills Section -->
         <section id="skills" class="skills">
+            <!-- Matrix-style code rain accent (canvas) -->
+            <canvas class="matrix-rain" id="matrixRain" aria-hidden="true"></canvas>
             <div class="container">
                 <h2 class="section-title">Technical Skills</h2>
                 <div class="skills-grid">
@@ -304,6 +314,12 @@
 
         <!-- Projects Section -->
         <section id="projects" class="projects">
+            <!-- Floating AI Lottie accent -->
+            <lottie-player
+                class="lottie-accent lottie-accent-projects"
+                src="https://assets3.lottiefiles.com/packages/lf20_in4cufsz.json"
+                background="transparent" speed="1" loop autoplay
+                aria-hidden="true"></lottie-player>
             <div class="container">
                 <h2 class="section-title">Featured Projects</h2>
                 <div class="projects-grid">
@@ -525,9 +541,14 @@
                         </span>
                     </div>
                 </div>
-                <button class="chatbot-close" id="chatbotClose">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="chatbot-header-actions">
+                    <button class="chatbot-action-btn" id="chatbotNewChat" title="New chat" aria-label="Start a new chat">
+                        <i class="fas fa-rotate-right"></i>
+                    </button>
+                    <button class="chatbot-action-btn chatbot-close" id="chatbotClose" title="Close" aria-label="Close chatbot">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="chatbot-messages" id="chatbotMessages">
@@ -565,6 +586,10 @@
                     <a href="resume.pdf" download="Sabari_Abishake_Resume.pdf" class="suggestion-chip resume-download">
                         <i class="fas fa-download"></i> Download Resume
                     </a>
+                </div>
+                <div class="chatbot-attribution">
+                    <i class="fas fa-bolt"></i>
+                    Powered by <a href="https://pollinations.ai" target="_blank" rel="noopener noreferrer">Pollinations AI</a>
                 </div>
             </div>
         </div>

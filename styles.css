@@ -1878,7 +1878,7 @@ section {
         right: 15px;
         bottom: 15px;
     }
-    
+
     .chatbot-window {
         width: calc(100vw - 30px);
         height: 75vh;
@@ -1886,19 +1886,19 @@ section {
         right: -15px;
         max-width: 350px;
     }
-    
+
     .chatbot-badge {
         font-size: 0.7rem;
         padding: 6px 10px;
         top: -35px;
         right: -10px;
     }
-    
+
     .chatbot-toggle {
         width: 55px;
         height: 55px;
     }
-    
+
     .chatbot-toggle i {
         font-size: 1.3rem;
     }
@@ -1909,7 +1909,7 @@ section {
         right: 10px;
         bottom: 10px;
     }
-    
+
     .chatbot-window {
         width: calc(100vw - 20px);
         height: 80vh;
@@ -1918,51 +1918,51 @@ section {
         left: 10px;
         max-height: 500px;
     }
-    
+
     .chatbot-toggle {
         width: 50px;
         height: 50px;
     }
-    
+
     .chatbot-toggle i {
         font-size: 1.2rem;
     }
-    
+
     .chatbot-badge {
         display: none;
     }
-    
+
     .chatbot-header {
         padding: 12px 15px;
     }
-    
+
     .chatbot-messages {
         padding: 15px;
         gap: 12px;
     }
-    
+
     .message-content {
         max-width: calc(100% - 50px);
     }
-    
+
     .chatbot-input {
         padding: 12px 15px;
     }
-    
+
     .quick-replies {
         gap: 6px;
     }
-    
+
     .quick-reply {
         font-size: 0.7rem;
         padding: 5px 10px;
     }
-    
+
     .suggestion-chip {
         font-size: 0.7rem;
         padding: 5px 10px;
     }
-    
+
     .chatbot-suggestions {
         gap: 6px;
     }
@@ -1985,9 +1985,165 @@ section {
         right: -5px;
         left: 5px;
     }
-    
+
     .chatbot-container {
         right: 5px;
         bottom: 5px;
     }
+}
+
+
+/* ============================================================
+   AI accents v2: Lottie players, Matrix rain, New-chat button,
+   Typing cursor stream, Pollinations attribution
+   ============================================================ */
+
+/* Lottie floating accents inside sections */
+.about, .projects, .skills {
+    position: relative;
+    overflow: hidden;
+}
+
+.lottie-accent {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    pointer-events: none;
+    opacity: 0.7;
+    z-index: 1;
+    filter: drop-shadow(0 0 14px rgba(124, 92, 255, 0.35));
+    animation: lottieFloat 7s ease-in-out infinite;
+}
+
+.lottie-accent-about {
+    top: 30px;
+    right: 24px;
+}
+
+.lottie-accent-projects {
+    top: 20px;
+    left: 24px;
+    animation-delay: -3s;
+}
+
+@keyframes lottieFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-12px) rotate(2deg); }
+}
+
+@media (max-width: 768px) {
+    .lottie-accent { width: 110px; height: 110px; opacity: 0.55; }
+    .lottie-accent-about    { top: 8px; right: 8px; }
+    .lottie-accent-projects { top: 8px; left: 8px; }
+}
+
+/* Matrix-style code rain canvas (inside Skills section) */
+.matrix-rain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.18;
+    z-index: 0;
+    mix-blend-mode: screen;
+}
+
+/* Make sure the section's own content sits above the rain */
+.skills > .container {
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .matrix-rain { opacity: 0.12; }
+}
+
+/* Chatbot header action buttons (new-chat + close) */
+.chatbot-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.chatbot-action-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.chatbot-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(-15deg);
+}
+
+.chatbot-action-btn.chatbot-close:hover {
+    transform: none;
+}
+
+#chatbotNewChat.spin-once {
+    animation: spinOnce 0.55s ease;
+}
+
+@keyframes spinOnce {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* Typing cursor used during AI streaming */
+.typing-cursor {
+    display: inline-block;
+    margin-left: 2px;
+    color: #19d4c4;
+    font-weight: 700;
+    animation: cursorBlink 0.9s steps(2) infinite;
+    text-shadow: 0 0 6px rgba(25, 212, 196, 0.7);
+}
+
+@keyframes cursorBlink {
+    50% { opacity: 0; }
+}
+
+.typed-text {
+    white-space: pre-wrap;
+}
+
+/* "Powered by Pollinations AI" attribution in chatbot footer */
+.chatbot-attribution {
+    margin-top: 8px;
+    font-size: 0.68rem;
+    color: #6e7681;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    letter-spacing: 0.2px;
+}
+
+.chatbot-attribution i {
+    color: #19d4c4;
+    font-size: 0.65rem;
+}
+
+.chatbot-attribution a {
+    color: #79c0ff;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.chatbot-attribution a:hover {
+    color: #c9b8ff;
+    text-decoration: underline;
 }
