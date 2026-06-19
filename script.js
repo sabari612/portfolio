@@ -461,8 +461,85 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize chatbot
     initializeChatbot();
 
+    // Initialize AI neural-network background animation
+    initAiNeuralBackground();
+
     console.log('Portfolio loaded successfully! 🚀');
 });
+
+// Lightweight AI-themed neural-network background.
+// Particles drift across the screen; nearby particles connect with thin lines.
+// Pauses when the tab is hidden and disables itself on very small screens
+// or when the user prefers reduced motion (accessibility + performance).
+function initAiNeuralBackground() {
+    const canvas = document.getElementById('aiNeuralBg');
+    if (!canvas) return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const ctx = canvas.getContext('2d');
+    let width = 0, height = 0, particles = [], rafId = null, running = true;
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        const isSmall = width < 600;
+        const density = isSmall ? 28 : Math.min(70, Math.floor((width * height) / 22000));
+        particles = Array.from({ length: density }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: (Math.random() - 0.5) * 0.35,
+            r: Math.random() * 1.6 + 0.6
+        }));
+    }
+
+    function draw() {
+        if (!running) return;
+        ctx.clearRect(0, 0, width, height);
+        // Draw particles
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(124, 92, 255, 0.55)';
+            ctx.fill();
+        }
+        // Draw connecting lines for nearby particles
+        const maxDist = 130;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const a = particles[i], b = particles[j];
+                const dx = a.x - b.x, dy = a.y - b.y;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < maxDist * maxDist) {
+                    const alpha = (1 - Math.sqrt(d2) / maxDist) * 0.35;
+                    ctx.strokeStyle = `rgba(25, 212, 196, ${alpha})`;
+                    ctx.lineWidth = 0.6;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                }
+            }
+        }
+        rafId = requestAnimationFrame(draw);
+    }
+
+    resize();
+    draw();
+    window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', () => {
+        running = !document.hidden;
+        if (running && !rafId) draw();
+        if (!running && rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    });
+}
 
 // Chatbot Functionality
 function initializeChatbot() {
@@ -484,50 +561,53 @@ function initializeChatbot() {
             "Hi there! I can tell you about Sabari's skills, projects, and experience. How can I assist you?",
             "Welcome! I'm Sabari's AI assistant. Feel free to ask me anything about his portfolio!"
         ],
+        // NOTE: Intents below are gated by the personal-context regex in tryLocalMatch().
+        // Keep keywords specific to Sabari-related queries; avoid generic words like
+        // 'who', 'work', 'today', 'tech' that would catch unrelated questions.
         skills: {
-            keywords: ['skill', 'technology', 'tech', 'programming', 'language', 'framework', 'tools'],
+            keywords: ['skill', 'tech stack', 'technologies', 'programming language', 'framework', 'expertise', 'proficient'],
             responses: [
                 "Sabari is a Full Stack Developer with expertise in:\n\n🔹 **Frontend:** Angular, Vue.js, React, HTML5, CSS3, JavaScript\n🔹 **Backend:** .NET Core, Node.js, Java, ASP.NET Core\n🔹 **Mobile:** Flutter, Xamarin, Ionic, Cordova\n🔹 **AI/ML:** LangChain, Streamlit, OpenAI, Groq LLM, Pinecone\n🔹 **Databases:** SQL Server, MongoDB, PostgreSQL, MySQL\n🔹 **Cloud:** Microsoft Azure, Jenkins CI/CD\n\nHe's also IBM certified in .NET development!"
             ]
         },
         experience: {
-            keywords: ['experience', 'work', 'job', 'career', 'professional', 'company', 'dod'],
+            keywords: ['experience', 'job', 'career', 'professional', 'company', 'dod', 'workplace', 'employer'],
             responses: [
                 "Sabari has 2+ years of professional experience as a Full Stack Web Developer at DOD IT Solution (March 2023 - Present).\n\n💼 **Key Achievements:**\n• Developed enterprise applications like boons, utctravel, utility bills pay\n• Built AI chatbots using LangChain and Streamlit\n• Created mobile apps with Flutter and Ionic\n• Implemented CI/CD pipelines with Jenkins\n• Worked with modern tech stack including .NET Core, Angular, and MongoDB\n\nHe's contributed to multiple successful projects in web development, mobile apps, and AI solutions!"
             ]
         },
         projects: {
-            keywords: ['project', 'work', 'built', 'created', 'developed', 'portfolio', 'github'],
+            keywords: ['project', 'portfolio', 'github repo', 'built', 'showcase', 'case study'],
             responses: [
                 "Sabari has worked on several impressive projects:\n\n🤖 **AI Projects:**\n• ChatNova - Smart restaurant chatbot with LangChain & Groq LLM\n• Code Assistant - AI-powered coding helper with RAG\n• Text Summarizer - Document summarization tool\n• YouTube Video Summarizer - Extract key insights from videos\n\n🌐 **Web Applications:**\n• Enterprise platforms: boons, utctravel, Reconbus\n• Utility payment systems\n• Cryptocurrency platforms\n\n📱 **Mobile Development:**\n• Cross-platform apps using Flutter\n• Native mobile solutions\n\nCheck out his GitHub at github.com/sabari612 for more details!"
             ]
         },
         contact: {
-            keywords: ['contact', 'email', 'phone', 'reach', 'hire', 'connect', 'linkedin'],
+            keywords: ['contact', 'email', 'phone', 'reach', 'connect', 'linkedin', 'get in touch'],
             responses: [
                 "You can reach Sabari through multiple channels:\n\n📧 **Email:** sabariabishake17abd@gmail.com\n📱 **Phone:** +91 9791675458\n💼 **LinkedIn:** linkedin.com/in/sabari-abishake-0a551a27b\n🐙 **GitHub:** github.com/sabari612\n\n💡 **Want to hire him?** You can use the contact form on this website or reach out directly via email. He's always open to discussing new opportunities and exciting projects!\n\nHe typically responds within 24 hours to all inquiries."
             ]
         },
         resume: {
-            keywords: ['resume', 'cv', 'download', 'pdf', 'curriculum'],
+            keywords: ['resume', 'cv', 'curriculum vitae'],
             responses: [
                 "📄 **Resume Download Available!**\n\nYou can download Sabari's complete resume which includes:\n\n• Professional experience details\n• Technical skills and certifications\n• Project highlights and achievements\n• Education and training background\n• Contact information\n\n**Click the download button below to get his latest resume in PDF format!**"
             ]
         },
         education: {
-            keywords: ['education', 'degree', 'university', 'college', 'study', 'certification'],
+            keywords: ['education', 'degree', 'university', 'college', 'graduation', 'certification', 'anna university', 'ibm'],
             responses: [
                 "Sabari's educational background:\n\n🎓 **Degree:** BE Computer Science from Anna University (2023)\n🏆 **Certification:** IBM Certified in Developing .NET (2024)\n\n📚 **Continuous Learning:**\nHe stays updated with the latest technologies and frameworks, especially in:\n• AI/ML technologies\n• Modern web development\n• Cloud computing\n• Mobile development\n\nHis combination of formal education and industry certifications makes him well-equipped for modern software development challenges!"
             ]
         },
         ai: {
-            keywords: ['ai', 'artificial intelligence', 'machine learning', 'ml', 'langchain', 'openai', 'llm', 'genai', 'rag', 'vector', 'embedding'],
+            keywords: ['ai project', 'langchain', 'openai', 'groq', 'rag', 'pinecone', 'chromadb', 'flowise', 'streamlit', 'chatnova'],
             responses: [
                 "Sabari has extensive experience in AI/ML technologies:\n\n🧠 **AI Tools & Frameworks:**\n• LangChain for building AI applications\n• Streamlit for AI web interfaces\n• OpenAI & Groq LLM integration\n• Pinecone & ChromaDB for vector databases\n• Flowise for visual AI pipeline creation\n\n🚀 **AI Projects:**\n• ChatNova - Restaurant chatbot with intelligent conversations\n• RAG Chatbot - Retrieval-augmented generation system\n• Code Assistant - AI-powered development helper\n• Document/Video summarizers\n\nHe combines traditional software development with cutting-edge AI to create intelligent, interactive applications!"
             ]
         },
         location: {
-            keywords: ['location', 'where', 'based', 'city', 'country', 'live', 'from', 'india', 'remote', 'relocate'],
+            keywords: ['location', 'based', 'live', 'relocate', 'remote work'],
             responses: [
                 "📍 **Location:** Sabari is based in India and works as a Full Stack Developer at DOD IT Solution.\n\nHe's open to **remote work** and **collaboration opportunities** worldwide. For on-site discussions, feel free to reach out via email at sabariabishake17abd@gmail.com."
             ]
@@ -539,13 +619,13 @@ function initializeChatbot() {
             ]
         },
         about: {
-            keywords: ['who', 'about', 'introduce', 'yourself', 'tell me about', 'sabari', 'background'],
+            keywords: ['introduce yourself', 'tell me about yourself', 'who are you', 'who is sabari', 'who is he', 'about sabari', 'about him', 'background of sabari'],
             responses: [
                 "👋 **About Sabari Abishake.K**\n\nSabari is a passionate **Full Stack Developer** with 2+ years of experience building enterprise web apps, mobile apps and AI-powered solutions.\n\n🎓 BE Computer Science — Anna University (2023)\n🏆 IBM Certified .NET Developer (2024)\n💼 Currently at DOD IT Solution (Mar 2023 – Present)\n\nHe blends modern web development (Angular, .NET Core, Node.js) with cutting-edge AI (LangChain, OpenAI, RAG) to build intelligent products."
             ]
         },
         news: {
-            keywords: ['news', 'latest', 'today', 'tech news', 'it news', 'world news', 'headlines', 'trending'],
+            keywords: ['tech news', 'it news', 'world news', 'latest news', 'todays news', "today's news", 'news headlines', 'trending news', 'latest it', 'latest tech'],
             async: true
         },
         default: [
@@ -709,17 +789,26 @@ STYLE: Friendly, professional, no emojis spam (1-2 max). Use markdown **bold** f
         return responses.news.keywords.some(k => lower.includes(k));
     }
 
+    // Personal-context gate: intent fires only if the message references Sabari
+    // (or "you/your" since the user is talking to his assistant). Prevents
+    // "who is the US PM" from being answered with "About Sabari".
+    const PERSONAL_CONTEXT = /\b(sabari|abishake|portfolio|developer|you|your|yours|yourself|his|him|he'?s|hire him|hire you)\b/i;
+    // Intents that should always match locally even without personal context.
+    const UNIVERSAL_INTENTS = new Set(['resume']);
+
     // Returns a matched local response or null if no keyword intent fires.
     function tryLocalMatch(message) {
         const lower = message.toLowerCase();
         if (/^(hi|hello|hey|yo|hola|namaste|good\s*(morning|afternoon|evening|night))\b/.test(lower)) {
             return getRandomResponse(responses.greetings);
         }
+        const hasPersonalContext = PERSONAL_CONTEXT.test(message);
         for (const [category, data] of Object.entries(responses)) {
             if (category === 'greetings' || category === 'default' || data.async) continue;
-            if (data.keywords && data.keywords.some(k => lower.includes(k))) {
-                return getRandomResponse(data.responses);
-            }
+            if (!data.keywords || !data.keywords.some(k => lower.includes(k))) continue;
+            // Gate personal intents to avoid false positives on general questions
+            if (!UNIVERSAL_INTENTS.has(category) && !hasPersonalContext) continue;
+            return getRandomResponse(data.responses);
         }
         return null;
     }

@@ -16,6 +16,82 @@ body {
     background-color: #0d1117;
 }
 
+/* AI neural-network animated background canvas */
+#aiNeuralBg {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
+    mix-blend-mode: screen;
+}
+
+/* Floating gradient AI orbs drifting behind content */
+.ai-orbs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.ai-orb {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    will-change: transform;
+}
+
+.ai-orb-1 {
+    background: radial-gradient(circle, #7c5cff 0%, transparent 70%);
+    top: 10%;
+    left: -120px;
+    animation: aiOrbFloat1 18s ease-in-out infinite;
+}
+
+.ai-orb-2 {
+    background: radial-gradient(circle, #19d4c4 0%, transparent 70%);
+    top: 55%;
+    right: -140px;
+    animation: aiOrbFloat2 22s ease-in-out infinite;
+}
+
+.ai-orb-3 {
+    background: radial-gradient(circle, #1f6feb 0%, transparent 70%);
+    bottom: -100px;
+    left: 40%;
+    animation: aiOrbFloat3 26s ease-in-out infinite;
+}
+
+@keyframes aiOrbFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(60px, 80px) scale(1.12); }
+}
+@keyframes aiOrbFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(-90px, -60px) scale(1.08); }
+}
+@keyframes aiOrbFloat3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(70px, -100px) scale(1.15); }
+}
+
+/* Keep all page content above the AI background layers */
+.header, main, .footer, .chatbot-container {
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 600px) {
+    .ai-orb { width: 220px; height: 220px; filter: blur(60px); opacity: 0.28; }
+    #aiNeuralBg { opacity: 0.3; }
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -374,13 +450,21 @@ section {
 .section-title::after {
     content: '';
     position: absolute;
-    width: 80px;
+    width: 120px;
     height: 4px;
-    background: linear-gradient(45deg, #58a6ff, #1f6feb);
+    background: linear-gradient(90deg, #7c5cff, #1f6feb, #19d4c4, #1f6feb, #7c5cff);
+    background-size: 200% 100%;
     bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
     border-radius: 2px;
+    animation: sectionTitleSweep 4s linear infinite;
+    box-shadow: 0 0 12px rgba(124, 92, 255, 0.55);
+}
+
+@keyframes sectionTitleSweep {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
 }
 
 /* About Section */
