@@ -526,6 +526,10 @@ function initializeChatbot() {
                 "Sabari has extensive experience in AI/ML technologies:\n\n🧠 **AI Tools & Frameworks:**\n• LangChain for building AI applications\n• Streamlit for AI web interfaces\n• OpenAI & Groq LLM integration\n• Pinecone & ChromaDB for vector databases\n• Flowise for visual AI pipeline creation\n\n🚀 **AI Projects:**\n• ChatNova - Restaurant chatbot with intelligent conversations\n• RAG Chatbot - Retrieval-augmented generation system\n• Code Assistant - AI-powered development helper\n• Document/Video summarizers\n\nHe combines traditional software development with cutting-edge AI to create intelligent, interactive applications!"
             ]
         },
+        news: {
+            keywords: ['news', 'latest', 'today', 'tech news', 'it news', 'world news', 'headlines', 'trending'],
+            async: true
+        },
         default: [
             "That's an interesting question! Let me help you find what you're looking for. You can ask me about:\n\n• Sabari's technical skills and expertise\n• His professional experience and projects\n• How to contact or hire him\n• His AI/ML capabilities\n• His education and certifications\n\nWhat specifically would you like to know?",
             "I'd be happy to help! I can provide information about Sabari's background, skills, projects, and how to get in touch with him. What would you like to learn more about?",
@@ -610,6 +614,22 @@ function initializeChatbot() {
         // Show typing indicator
         showTypingIndicator();
 
+        // Route news queries through the async fetcher (auto-updates daily)
+        if (isNewsIntent(message)) {
+            fetchITNews()
+                .then(articles => {
+                    hideTypingIndicator();
+                    addMessage(formatNewsResponse(articles), 'bot');
+                    chatbotSend.disabled = false;
+                })
+                .catch(() => {
+                    hideTypingIndicator();
+                    addMessage("Sorry, I couldn't fetch the latest IT news right now. Please try again in a moment.", 'bot');
+                    chatbotSend.disabled = false;
+                });
+            return;
+        }
+
         // Generate response after delay
         setTimeout(() => {
             hideTypingIndicator();
@@ -618,6 +638,51 @@ function initializeChatbot() {
             addMessage(response, 'bot', isResumeQuery);
             chatbotSend.disabled = false;
         }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+    }
+
+    function isNewsIntent(message) {
+        const lower = message.toLowerCase();
+        return responses.news.keywords.some(k => lower.includes(k));
+    }
+
+    // Daily auto-updating IT news via Hacker News Algolia API (no key, CORS-enabled).
+    // Cached in localStorage per UTC date so it refreshes once a day automatically.
+    async function fetchITNews() {
+        const todayKey = 'itNewsCache_' + new Date().toISOString().slice(0, 10);
+        const cached = localStorage.getItem(todayKey);
+        if (cached) {
+            try { return JSON.parse(cached); } catch (e) { /* fall through */ }
+        }
+
+        const endpoint = 'https://hn.algolia.com/api/v1/search?tags=front_page';
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error('News fetch failed');
+        const data = await res.json();
+
+        const articles = (data.hits || [])
+            .filter(h => h.title && h.url)
+            .slice(0, 5)
+            .map(h => ({ title: h.title, url: h.url, points: h.points || 0 }));
+
+        // Clear any previous-day cache entries before storing today's
+        Object.keys(localStorage)
+            .filter(k => k.startsWith('itNewsCache_') && k !== todayKey)
+            .forEach(k => localStorage.removeItem(k));
+
+        localStorage.setItem(todayKey, JSON.stringify(articles));
+        return articles;
+    }
+
+    function formatNewsResponse(articles) {
+        if (!articles || articles.length === 0) {
+            return "No IT news available right now. Please check back later!";
+        }
+        const today = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        const items = articles.map((a, i) => {
+            const safeTitle = a.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `${i + 1}. <a href="${a.url}" target="_blank" rel="noopener noreferrer" style="color:#58a6ff;">${safeTitle}</a> <span style="color:#8b949e;">(${a.points} pts)</span>`;
+        }).join('\n');
+        return `📰 **Latest IT & Tech News — ${today}**\n\n${items}\n\n_Updated automatically every day from Hacker News._`;
     }
 
     function addMessage(content, sender, includeResumeButton = false) {
@@ -705,8 +770,8 @@ function initializeChatbot() {
         
         // Check each category
         for (const [category, data] of Object.entries(responses)) {
-            if (category === 'greetings' || category === 'default') continue;
-            
+            if (category === 'greetings' || category === 'default' || data.async) continue;
+
             if (data.keywords && data.keywords.some(keyword => lowerMessage.includes(keyword))) {
                 return getRandomResponse(data.responses);
             }
